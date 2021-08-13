@@ -65,6 +65,12 @@ class CustomUser(AbstractBaseUser, BaseModel):
     def get_short_name(self):
         return self.name
 
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
     def __str__(self):
         return self.name
 
@@ -105,6 +111,7 @@ class Product(BaseModel):
     class Meta:
         verbose_name = '产品表(Product)'
         verbose_name_plural = verbose_name
+        ordering = ['id']
 
 
 class Message(BaseModel):
@@ -149,3 +156,7 @@ class Permission(BaseModel):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        verbose_name = '权限表(Permission)'
+        verbose_name_plural = verbose_name

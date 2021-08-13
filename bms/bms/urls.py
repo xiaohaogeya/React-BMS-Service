@@ -16,9 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
+from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
+from rest_framework.documentation import include_docs_urls
 
+schema_view = get_schema_view(title='API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^', include('app.urls')),
+    # 生成文档
+    url(r'^docs/', schema_view, name='docs'),
+    url(r'^api-docs/', include_docs_urls(title="api接口文档")),
 ]

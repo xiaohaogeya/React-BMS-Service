@@ -1,8 +1,14 @@
+from datetime import datetime
+from django.utils import timezone
 from rest_framework import viewsets, status, permissions
+from rest_framework.views import APIView
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework_jwt.settings import api_settings
 from .models import CustomUser, Role, Permission, Product, Activity, Message
 from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, ProductSerializer, ActivitySerializer
+from .err_msg import ErrMsg
 
 
 class BasicSetPagination(PageNumberPagination):
@@ -59,5 +65,44 @@ class ActivityViewSet(viewsets.ModelViewSet):
     serializer_class = ActivitySerializer
     pagination_class = BasicSetPagination
 
+
+def jwt_response(user):
+    """jwt自定义响应载荷"""
+    jwt_dict = {"username": user.name,  "mobile": user.mobile, "user_id": user.id}
+    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+    payload = jwt_payload_handler(user)
+    jwt_dict['token'] = jwt_encode_handler(payload)
+    return jwt_dict
+
+
+class UserLoginView(CreateAPIView):
+    """
+    用户登录视图集
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        print('登录的用户名:', username)
+        print('登录的密码:', password)
+
+        if not all([username, password]):
+            return Response(ErrMsg().get('000001'))
+
+        # 如果在本地系统已有账户
+        user = CustomUser.objects.filter(name=username).first()
+
+        if not user:
+            return Response(ErrMsg().get('000002'))
+
+        if user and user.check_password(password):
+            user.last_login = timezone.now()
+            user.save()
+            return Response(ErrMsg({'results': jwt_response(user)}).get())
+
+        return Response(ErrMsg().get('000003'))
 
 
