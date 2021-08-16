@@ -7,6 +7,7 @@ class ErrMsg:
         self.err_msg['000001'] = '用户名或密码必填项.'
         self.err_msg['000002'] = '用户名未注册.'
         self.err_msg['000003'] = '用户名或密码错误.'
+        self.err_msg['000004'] = '未查询到该用户信息.'
 
         self.results = results
 

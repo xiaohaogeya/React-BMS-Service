@@ -85,6 +85,7 @@ class CustomUser(AbstractBaseUser, BaseModel):
     class Meta:
         verbose_name = '用户表(CustomUser)'
         verbose_name_plural = verbose_name
+        ordering = ['-id']
 
 
 class Activity(BaseModel):
@@ -125,6 +126,7 @@ class Message(BaseModel):
     class Meta:
         verbose_name = '消息表(Message)'
         verbose_name_plural = verbose_name
+        ordering = ['-id']
 
 
 class Role(BaseModel):
@@ -140,6 +142,7 @@ class Role(BaseModel):
     class Meta:
         verbose_name = '角色表(Role)'
         verbose_name_plural = verbose_name
+        ordering = ['-id']
 
 
 class Permission(BaseModel):
@@ -160,3 +163,4 @@ class Permission(BaseModel):
     class Meta:
         verbose_name = '权限表(Permission)'
         verbose_name_plural = verbose_name
+        ordering = ['id']

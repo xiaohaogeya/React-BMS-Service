@@ -2,12 +2,13 @@ from datetime import datetime
 from django.utils import timezone
 from rest_framework import viewsets, status, permissions
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_jwt.settings import api_settings
 from .models import CustomUser, Role, Permission, Product, Activity, Message
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, ProductSerializer, ActivitySerializer
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, ProductSerializer, ActivitySerializer, \
+    PermissionTreeSerializer
 from .err_msg import ErrMsg
 
 
@@ -68,7 +69,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
 def jwt_response(user):
     """jwt自定义响应载荷"""
-    jwt_dict = {"username": user.name,  "mobile": user.mobile, "user_id": user.id}
+    jwt_dict = {"username": user.name, "mobile": user.mobile, "user_id": user.id}
     jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
     jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
     payload = jwt_payload_handler(user)
@@ -82,6 +83,7 @@ class UserLoginView(CreateAPIView):
     """
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
@@ -104,5 +106,46 @@ class UserLoginView(CreateAPIView):
             return Response(ErrMsg({'results': jwt_response(user)}).get())
 
         return Response(ErrMsg().get('000003'))
+
+
+class PermissionTreeView(viewsets.ModelViewSet):
+    """
+    权限树
+    """
+    queryset = Permission.objects.filter(parent__isnull=True)
+    serializer_class = PermissionTreeSerializer
+
+
+class UserInfoView(APIView):
+    """
+    用户信息
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user_id = self.request.user.id
+        user = CustomUser.objects.filter(id=user_id).first()
+        if not user:
+            return Response(ErrMsg().get('000004'))
+
+        user_data = UserSerializer(instance=user, many=False).data
+        return Response(ErrMsg({'results': user_data}).get())
+
+
+class QueryUserPermissionView(APIView):
+    """
+    获取用户权限
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user_id = self.request.user.id
+        user_permissions_ids = CustomUser.objects.filter(id=user_id).values_list('roles__permissions__id', flat=True)
+        permissions = Permission.objects.filter(id__in=user_permissions_ids)
+        permissions_data = PermissionSerializer(instance=permissions, many=True).data
+        return Response(ErrMsg({'results': permissions_data}).get())
+
+
+
 
 

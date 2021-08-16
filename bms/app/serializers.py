@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = "__all__"
+        fields = ['name', 'mobile', 'id', 'email']
 
 
 class ActivitySerializer(serializers.ModelSerializer):
@@ -36,6 +36,10 @@ class PermissionSerializer(serializers.ModelSerializer):
     """
     权限序列化器
     """
+    key = serializers.SerializerMethodField(read_only=True)
+
+    def get_key(self, obj):
+        return obj.id
 
     class Meta:
         model = Permission
@@ -51,3 +55,21 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = "__all__"
 
+
+class PermissionTreeSerializer(serializers.ModelSerializer):
+    """
+    权限树序列化器
+    """
+    children = serializers.SerializerMethodField(read_only=True)
+    key = serializers.SerializerMethodField(read_only=True)
+
+    def get_children(self, obj):
+        permissions = Permission.objects.filter(parent=obj.id)
+        return PermissionSerializer(instance=permissions, many=True).data
+
+    def get_key(self, obj):
+        return obj.id
+
+    class Meta:
+        model = Permission
+        fields = "__all__"
