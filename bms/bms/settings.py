@@ -133,7 +133,7 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     "JWT_ALLOW_REFRESH": True,
-    'JWT_EXPIRATION_DELTA': timedelta(days=1),
+    'JWT_EXPIRATION_DELTA': timedelta(days=365),
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'app.views.jwt_response_payload_handler',
 }
 
@@ -191,10 +191,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
+# TIME_ZONE = 'UTC'
 
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'zh-hans'
+TIME_ZONE = 'Asia/Shanghai'
 USE_I18N = True
 
 USE_L10N = True
